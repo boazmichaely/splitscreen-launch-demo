@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    tools:context=".MainActivity">
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/test_description"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/buttonContainer"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <!-- Button Container -->
+    <LinearLayout
+        android:id="@+id/buttonContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        app:layout_constraintTop_toBottomOf="@+id/titleText"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Spotify Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/launchSpotifyButton"
+            android:layout_width="280dp"
+            android:layout_height="56dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/launch_spotify"
+            android:textSize="16sp"
+            app:backgroundTint="#1DB954" />
+
+        <!-- YouTube Music Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/launchYouTubeMusicButton"
+            android:layout_width="280dp"
+            android:layout_height="56dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/launch_youtube_music"
+            android:textSize="16sp"
+            app:backgroundTint="#FF0000" />
+
+        <!-- Instructions Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/showInstructionsButton"
+            android:layout_width="280dp"
+            android:layout_height="56dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/show_instructions"
+            android:textSize="16sp"
+            app:backgroundTint="#6200EE"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        <!-- Half Screen Toggle Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/toggleHalfScreenButton"
+            android:layout_width="280dp"
+            android:layout_height="56dp"
+            android:text="@string/toggle_half_screen"
+            android:textSize="16sp"
+            app:backgroundTint="#FF9800"
+            style="@style/Widget.Material3.Button" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
