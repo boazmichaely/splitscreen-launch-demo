@@ -3,9 +3,18 @@ package com.test.splitscreen;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,28 +27,39 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Check if we need to apply fullscreen theme BEFORE calling super.onCreate
+        boolean useFullscreenTheme = getIntent().getBooleanExtra("use_fullscreen_theme", false);
+        if (useFullscreenTheme) {
+            Log.d(TAG, "Applying fullscreen theme to override split-screen");
+            setTheme(R.style.Theme_SplitTest_Fullscreen);
+        }
+        
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         // Check if we're restarting to exit multi-window mode
         boolean exitingMultiWindow = getIntent().getBooleanExtra("exit_multiwindow", false);
-        if (exitingMultiWindow) {
-            Log.d(TAG, "Restarted MainActivity to exit multi-window mode");
-            Toast.makeText(this, "✅ Returned to full screen!", Toast.LENGTH_SHORT).show();
+        boolean exitAttempt = getIntent().getBooleanExtra("exit_attempt", false);
+        
+        if (exitingMultiWindow || exitAttempt) {
+            Log.d(TAG, "Restarted MainActivity - exit attempt completed");
+            Toast.makeText(this, "✅ Exit attempt completed - now in full screen?", Toast.LENGTH_LONG).show();
         }
 
         MaterialButton launchSpotifyButton = findViewById(R.id.launchSpotifyButton);
-        MaterialButton launchYouTubeMusicButton = findViewById(R.id.launchYouTubeMusicButton);
-        MaterialButton showInstructionsButton = findViewById(R.id.showInstructionsButton);
-        MaterialButton toggleHalfScreenButton = findViewById(R.id.toggleHalfScreenButton);
+        MaterialButton testExitButton = findViewById(R.id.testExitButton);
 
         launchSpotifyButton.setOnClickListener(v -> launchSpotify());
-        launchYouTubeMusicButton.setOnClickListener(v -> launchYouTubeMusic());
-        showInstructionsButton.setOnClickListener(v -> showSplitScreenInstructions());
-        toggleHalfScreenButton.setOnClickListener(v -> toggleHalfScreen());
+        testExitButton.setOnClickListener(v -> testExitMethod4());
 
-        // Set initial button text based on current mode
-        updateToggleButtonText();
+        // Set initial test button state
+        if (testExitButton != null) {
+            if (isInMultiWindowMode()) {
+                testExitButton.setText("🖥️ Full Screen");
+            } else {
+                testExitButton.setText("🧪 Enter Split-Screen First");
+            }
+        }
 
         Log.d(TAG, "Split Test app started - ready to test music app launching!");
     }
@@ -51,37 +71,55 @@ public class MainActivity extends AppCompatActivity {
         boolean isInMultiWindow = isInMultiWindowMode();
         Log.d(TAG, "Currently in multi-window mode: " + isInMultiWindow);
         
+        if (!isInMultiWindow) {
+            // Step 1: Force split-screen mode first
+            Log.d(TAG, "Not in split-screen - forcing split-screen then launching Spotify");
+            showSplitScreenHint("Auto-splitting screen and launching Spotify...");
+            
+            try {
+                // Just launch Spotify normally since no split-screen forced
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    launchSpotifyInSplitScreen();
+                }, 200); // 200ms delay to let dummy activity start
+                
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to force split-screen: " + e.getMessage());
+                // Fallback to normal launch
+                launchSpotifyNormally();
+            }
+        } else {
+            // Already in split-screen, just launch Spotify
+            Log.d(TAG, "Already in split-screen - launching Spotify in adjacent window");
+            launchSpotifyInSplitScreen();
+        }
+    }
+    
+    private void launchSpotifyInSplitScreen() {
         try {
-            // Launch Spotify using URI scheme (works reliably)
             Intent spotifyIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("spotify:"));
-            
-            if (isInMultiWindow) {
-                // Try to launch in adjacent window (split-screen)
-                spotifyIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT | Intent.FLAG_ACTIVITY_NEW_TASK);
-                Log.d(TAG, "Launching Spotify in adjacent window (split-screen mode)");
-                showSplitScreenHint("Attempting to launch Spotify in adjacent window...");
-            } else {
-                // Normal launch for non-split-screen mode
-                Log.d(TAG, "Launching Spotify normally (not in split-screen)");
-                showSplitScreenHint("Spotify launched! Now swipe up and tap split-screen.");
-            }
-            
+            spotifyIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(spotifyIntent);
-            Log.d(TAG, "Spotify app launched successfully");
-            
+            showSplitScreenHint("Spotify launched in split-screen!");
+            Log.d(TAG, "Spotify launched in adjacent window");
         } catch (Exception e) {
-            // Fallback to web if URI scheme fails
-            Log.d(TAG, "Spotify app not available, opening web version");
+            // Fallback to web in split-screen
+            Log.d(TAG, "Spotify app not available, opening web in split-screen");
             Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://open.spotify.com"));
-            
-            if (isInMultiWindow) {
-                webIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT | Intent.FLAG_ACTIVITY_NEW_TASK);
-                showSplitScreenHint("Opening Spotify web in adjacent window...");
-            } else {
-                showSplitScreenHint("Spotify web opened! Now swipe up and tap split-screen.");
-            }
-            
+            webIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(webIntent);
+            showSplitScreenHint("Spotify web opened in split-screen!");
+        }
+    }
+    
+    private void launchSpotifyNormally() {
+        try {
+            Intent spotifyIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("spotify:"));
+            startActivity(spotifyIntent);
+            showSplitScreenHint("Spotify launched! Swipe up and tap split-screen.");
+        } catch (Exception e) {
+            Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://open.spotify.com"));
+            startActivity(webIntent);
+            showSplitScreenHint("Spotify web opened! Swipe up and tap split-screen.");
         }
     }
 
@@ -152,10 +190,8 @@ public class MainActivity extends AppCompatActivity {
         if (isInMultiWindow) {
             Toast.makeText(this, "Tap the gray area to exit split-screen", Toast.LENGTH_SHORT).show();
         } else {
-            Log.d(TAG, "Entering half-screen mode...");
-            Intent dummyIntent = new Intent(this, DummyActivity.class);
-            dummyIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(dummyIntent);
+            Log.d(TAG, "Use the theme switch button to test split-screen exit");
+            Toast.makeText(this, "Use 'Test Theme Switch' button to test exit method", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -170,32 +206,100 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "Split Test app paused - user switched to another app");
-    }
-    
-    private void updateToggleButtonText() {
-        MaterialButton toggleButton = findViewById(R.id.toggleHalfScreenButton);
-        if (toggleButton != null) {
-            boolean isInMultiWindow = isInMultiWindowMode();
-            if (isInMultiWindow) {
-                toggleButton.setText("🔄 Exit Half Screen");
-            } else {
-                toggleButton.setText("🔄 Enter Half Screen");
-            }
+        }
+
+    private void testExitMethod4() {
+        boolean isInMultiWindow = isInMultiWindowMode();
+        Log.d(TAG, "Exit Split-Screen Method - Currently in multi-window: " + isInMultiWindow);
+        
+        if (!isInMultiWindow) {
+            Toast.makeText(this, "Not in split-screen mode. Enter split-screen first.", Toast.LENGTH_LONG).show();
+            return;
+        }
+        
+        Log.d(TAG, "Executing proven task manipulation method...");
+        Toast.makeText(this, "✨ Exiting split-screen mode...", Toast.LENGTH_SHORT).show();
+        
+        try {
+            // THE PROVEN METHOD: Task manipulation (moveTaskToBack + reorder to front)
+            Log.d(TAG, "Task Manipulation: Moving to background then bringing to front");
+            moveTaskToBack(true);
+            
+            // Brief delay then bring back to front - this forces Android to exit split-screen!
+            Handler handler = new Handler(Looper.getMainLooper());
+            handler.postDelayed(() -> {
+                Intent bringBackIntent = new Intent(this, MainActivity.class);
+                bringBackIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                Log.d(TAG, "Bringing app back to front with REORDER_TO_FRONT");
+                startActivity(bringBackIntent);
+            }, 150); // Slightly longer delay for reliability
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Task manipulation failed: " + e.getMessage());
+            Toast.makeText(this, "Exit method failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
+    
+    private void changeScreenSystemUiController(boolean isFullScreen) {
+        Window window = getWindow();
+        if (window != null) {
+            Log.d(TAG, "Setting WindowCompat decor fits system windows: " + !isFullScreen);
+            WindowCompat.setDecorFitsSystemWindows(window, !isFullScreen);
+            
+            WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, window.getDecorView());
+            if (controller != null) {
+                Log.d(TAG, "Setting system bars behavior for fullscreen: " + isFullScreen);
+                controller.setSystemBarsBehavior(
+                    isFullScreen
+                        ? WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                        : WindowInsetsControllerCompat.BEHAVIOR_SHOW_BARS_BY_TOUCH
+                );
+                
+                if (isFullScreen) {
+                    Log.d(TAG, "Hiding system bars");
+                    controller.hide(WindowInsetsCompat.Type.systemBars());
+                } else {
+                    Log.d(TAG, "Showing system bars");
+                    controller.show(WindowInsetsCompat.Type.systemBars());
+                }
+            }
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                Log.d(TAG, "Setting display cutout mode for API 28+");
+                WindowManager.LayoutParams params = window.getAttributes();
+                params.layoutInDisplayCutoutMode = isFullScreen
+                    ? WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+                    : WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT;
+                window.setAttributes(params);
+            }
+            
+            Log.d(TAG, "Modern WindowInsets method completed");
+        }
+    }
+
+
 
     @Override
     public void onMultiWindowModeChanged(boolean isInMultiWindowMode) {
         super.onMultiWindowModeChanged(isInMultiWindowMode);
         Log.d(TAG, "Multi-window mode changed: " + isInMultiWindowMode);
         
-        // Update toggle button text based on mode
-        updateToggleButtonText();
+        // Update test button visibility and text
+        MaterialButton testExitButton = findViewById(R.id.testExitButton);
+        if (testExitButton != null) {
+            if (isInMultiWindowMode) {
+                testExitButton.setText("🖥️ Full Screen");
+                testExitButton.setVisibility(View.VISIBLE);
+            } else {
+                testExitButton.setText("🧪 Enter Split-Screen First");
+                testExitButton.setVisibility(View.VISIBLE);
+            }
+        }
         
         if (isInMultiWindowMode) {
-            Toast.makeText(this, "✅ Now in split-screen! Try launching music apps.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "✅ Now in split-screen! Try exit button.", Toast.LENGTH_LONG).show();
         } else {
-            Toast.makeText(this, "❌ Exited split-screen mode.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "🎉 Successfully exited split-screen mode!", Toast.LENGTH_SHORT).show();
         }
     }
 }

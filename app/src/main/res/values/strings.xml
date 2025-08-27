@@ -4,5 +4,6 @@
     <string name="launch_youtube_music">🎶 Launch YouTube Music</string>
     <string name="show_instructions">📱 Split Screen Guide</string>
     <string name="toggle_half_screen">🔄 Enter Half Screen</string>
+    <string name="test_exit_method">🖥️ Full Screen</string>
     <string name="test_description">Test split-screen workflow</string>
 </resources>
