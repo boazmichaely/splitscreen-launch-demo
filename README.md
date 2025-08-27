@@ -45,15 +45,6 @@ handler.postDelayed(() -> {
 }, 150);
 ```
 
-## Development Process
-
-This implementation was developed through systematic testing of approaches suggested by the Android community:
-
-1. Window Flags - Various `FLAG_FULLSCREEN` and `setFlags()` combinations
-2. Theme Switching - Runtime theme changes and activity recreation  
-3. System UI Manipulation - Modern WindowInsets API approaches
-4. Activity Restart - Different Intent flag combinations
-5. Task Manipulation - Background/foreground cycling (successful approach)
 
 ## User Interface
 
