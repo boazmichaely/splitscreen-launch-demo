@@ -34,13 +34,9 @@ public class MainActivity extends AppCompatActivity {
         launchSpotifyButton.setOnClickListener(v -> launchSpotify());
         testExitButton.setOnClickListener(v -> testExitMethod4());
 
-        // Set initial test button state
+        // Hide exit button initially (only show when in split-screen)
         if (testExitButton != null) {
-            if (isInMultiWindowMode()) {
-                testExitButton.setText("🖥️ Full Screen");
-            } else {
-                testExitButton.setText("🧪 Enter Split-Screen First");
-            }
+            testExitButton.setVisibility(View.GONE);
         }
 
         Log.d(TAG, "Split Test app started - ready to test music app launching!");
@@ -187,8 +183,7 @@ public class MainActivity extends AppCompatActivity {
                 testExitButton.setText("🖥️ Full Screen");
                 testExitButton.setVisibility(View.VISIBLE);
             } else {
-                testExitButton.setText("🧪 Enter Split-Screen First");
-                testExitButton.setVisibility(View.VISIBLE);
+                testExitButton.setVisibility(View.GONE);
             }
         }
         
