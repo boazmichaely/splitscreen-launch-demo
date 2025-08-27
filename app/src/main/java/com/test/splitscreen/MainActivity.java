@@ -1,7 +1,7 @@
 package com.test.splitscreen;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
+
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,7 +14,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 
-import androidx.appcompat.app.AlertDialog;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
@@ -105,45 +105,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void launchYouTubeMusic() {
-        Log.d(TAG, "Attempting to launch YouTube Music...");
-        
-        // Check if we're currently in multi-window mode
-        boolean isInMultiWindow = isInMultiWindowMode();
-        Log.d(TAG, "Currently in multi-window mode: " + isInMultiWindow);
-        
-        try {
-            // Try to launch YouTube Music app using package manager
-            Intent youtubeMusicIntent = getPackageManager().getLaunchIntentForPackage("com.google.android.apps.youtube.music");
-            if (youtubeMusicIntent != null) {
-                if (isInMultiWindow) {
-                    // Try to launch in adjacent window (split-screen)
-                    youtubeMusicIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    Log.d(TAG, "Launching YouTube Music in adjacent window (split-screen mode)");
-                    showSplitScreenHint("Attempting to launch YouTube Music in adjacent window...");
-                } else {
-                    Log.d(TAG, "Launching YouTube Music normally (not in split-screen)");
-                    showSplitScreenHint("YouTube Music launched! Now swipe up and tap split-screen.");
-                }
-                startActivity(youtubeMusicIntent);
-                Log.d(TAG, "YouTube Music app launched successfully");
-            } else {
-                // Fallback to web if app not available
-                Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://music.youtube.com"));
-                if (isInMultiWindow) {
-                    webIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    showSplitScreenHint("Opening YouTube Music web in adjacent window...");
-                } else {
-                    showSplitScreenHint("YouTube Music web opened! Now swipe up and tap split-screen.");
-                }
-                startActivity(webIntent);
-                Log.d(TAG, "YouTube Music web player launched");
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error launching YouTube Music", e);
-            Toast.makeText(this, "Could not launch YouTube Music", Toast.LENGTH_SHORT).show();
-        }
-    }
+
 
     private void showSplitScreenInstructions() {
         new AlertDialog.Builder(this)
