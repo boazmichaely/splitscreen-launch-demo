@@ -12,9 +12,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
-import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.core.view.WindowInsetsControllerCompat;
+
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,24 +25,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Check if we need to apply fullscreen theme BEFORE calling super.onCreate
-        boolean useFullscreenTheme = getIntent().getBooleanExtra("use_fullscreen_theme", false);
-        if (useFullscreenTheme) {
-            Log.d(TAG, "Applying fullscreen theme to override split-screen");
-            setTheme(R.style.Theme_SplitTest_Fullscreen);
-        }
-        
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        // Check if we're restarting to exit multi-window mode
-        boolean exitingMultiWindow = getIntent().getBooleanExtra("exit_multiwindow", false);
-        boolean exitAttempt = getIntent().getBooleanExtra("exit_attempt", false);
-        
-        if (exitingMultiWindow || exitAttempt) {
-            Log.d(TAG, "Restarted MainActivity - exit attempt completed");
-            Toast.makeText(this, "✅ Exit attempt completed - now in full screen?", Toast.LENGTH_LONG).show();
-        }
 
         MaterialButton launchSpotifyButton = findViewById(R.id.launchSpotifyButton);
         MaterialButton testExitButton = findViewById(R.id.testExitButton);
@@ -190,8 +172,8 @@ public class MainActivity extends AppCompatActivity {
         if (isInMultiWindow) {
             Toast.makeText(this, "Tap the gray area to exit split-screen", Toast.LENGTH_SHORT).show();
         } else {
-            Log.d(TAG, "Use the theme switch button to test split-screen exit");
-            Toast.makeText(this, "Use 'Test Theme Switch' button to test exit method", Toast.LENGTH_LONG).show();
+            Log.d(TAG, "Use the Full Screen button to exit split-screen");
+            Toast.makeText(this, "Use 'Full Screen' button to exit split-screen", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -240,42 +222,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
-    private void changeScreenSystemUiController(boolean isFullScreen) {
-        Window window = getWindow();
-        if (window != null) {
-            Log.d(TAG, "Setting WindowCompat decor fits system windows: " + !isFullScreen);
-            WindowCompat.setDecorFitsSystemWindows(window, !isFullScreen);
-            
-            WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, window.getDecorView());
-            if (controller != null) {
-                Log.d(TAG, "Setting system bars behavior for fullscreen: " + isFullScreen);
-                controller.setSystemBarsBehavior(
-                    isFullScreen
-                        ? WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                        : WindowInsetsControllerCompat.BEHAVIOR_SHOW_BARS_BY_TOUCH
-                );
-                
-                if (isFullScreen) {
-                    Log.d(TAG, "Hiding system bars");
-                    controller.hide(WindowInsetsCompat.Type.systemBars());
-                } else {
-                    Log.d(TAG, "Showing system bars");
-                    controller.show(WindowInsetsCompat.Type.systemBars());
-                }
-            }
-            
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                Log.d(TAG, "Setting display cutout mode for API 28+");
-                WindowManager.LayoutParams params = window.getAttributes();
-                params.layoutInDisplayCutoutMode = isFullScreen
-                    ? WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-                    : WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT;
-                window.setAttributes(params);
-            }
-            
-            Log.d(TAG, "Modern WindowInsets method completed");
-        }
-    }
+
 
 
 
