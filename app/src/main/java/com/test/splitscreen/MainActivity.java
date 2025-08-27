@@ -34,12 +34,13 @@ public class MainActivity extends AppCompatActivity {
         launchSpotifyButton.setOnClickListener(v -> launchSpotify());
         testExitButton.setOnClickListener(v -> testExitMethod4());
 
-        // Set initial test button state
+        // Set initial test button state - hide when not useful
         if (testExitButton != null) {
             if (isInMultiWindowMode()) {
                 testExitButton.setText("🖥️ Full Screen");
+                testExitButton.setVisibility(View.VISIBLE);
             } else {
-                testExitButton.setText("🧪 Enter Split-Screen First");
+                testExitButton.setVisibility(View.GONE);
             }
         }
 
@@ -187,15 +188,14 @@ public class MainActivity extends AppCompatActivity {
                 testExitButton.setText("🖥️ Full Screen");
                 testExitButton.setVisibility(View.VISIBLE);
             } else {
-                testExitButton.setText("🧪 Enter Split-Screen First");
-                testExitButton.setVisibility(View.VISIBLE);
+                testExitButton.setVisibility(View.GONE);
             }
         }
         
         if (isInMultiWindowMode) {
-            Toast.makeText(this, "✅ Now in split-screen! Try exit button.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Now in split-screen mode", Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(this, "🎉 Successfully exited split-screen mode!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Exited split-screen mode", Toast.LENGTH_SHORT).show();
         }
     }
 }
