@@ -107,20 +107,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private void showSplitScreenInstructions() {
-        new AlertDialog.Builder(this)
-            .setTitle("Split Screen Guide")
-            .setMessage("To use split-screen with music apps:\n\n" +
-                       "Method 1 - Quick Launch:\n" +
-                       "1. Tap Launch Spotify or Launch YouTube Music\n" +
-                       "2. Swipe up to see recent apps\n" +
-                       "3. Tap the Split Test icon at top\n" +
-                       "4. Select Split screen\n" +
-                       "5. Choose your music app\n\n" +
-                       "Goal: Test which method feels better!")
-            .setPositiveButton("Got it!", null)
-            .show();
-    }
+
 
     private void showSplitScreenHint(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
