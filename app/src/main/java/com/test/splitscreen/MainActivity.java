@@ -28,18 +28,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Initialize UI components
         MaterialButton launchSpotifyButton = findViewById(R.id.launchSpotifyButton);
         MaterialButton testExitButton = findViewById(R.id.testExitButton);
 
+        // Set up button click handlers
         launchSpotifyButton.setOnClickListener(v -> launchSpotify());
         testExitButton.setOnClickListener(v -> testExitMethod4());
 
-        // Set initial test button state - hide when not useful
+        // SMART UI: Only show the "Full Screen" button when it's actually useful
+        // Initial state: hide the exit button unless we're already in split-screen
         if (testExitButton != null) {
             if (isInMultiWindowMode()) {
+                // Rare case: app opened directly in split-screen
                 testExitButton.setText("🖥️ Full Screen");
                 testExitButton.setVisibility(View.VISIBLE);
             } else {
+                // Normal case: hide until split-screen is entered
                 testExitButton.setVisibility(View.GONE);
             }
         }
@@ -77,15 +82,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
+    /**
+     * Launch Spotify with Split-Screen Intent Flags
+     * 
+     * KEY FLAG COMBINATION:
+     * - FLAG_ACTIVITY_LAUNCH_ADJACENT: Forces launch in split-screen mode
+     * - FLAG_ACTIVITY_NEW_TASK: Creates new task stack for the target app
+     * 
+     * This combination is the secret sauce that makes programmatic split-screen work!
+     */
     private void launchSpotifyInSplitScreen() {
         try {
+            // Try launching the native Spotify app first
             Intent spotifyIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("spotify:"));
             spotifyIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(spotifyIntent);
             showSplitScreenHint("Spotify launched in split-screen!");
             Log.d(TAG, "Spotify launched in adjacent window");
         } catch (Exception e) {
-            // Fallback to web in split-screen
+            // Graceful fallback: launch Spotify web in split-screen
             Log.d(TAG, "Spotify app not available, opening web in split-screen");
             Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://open.spotify.com"));
             webIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCH_ADJACENT | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -94,12 +109,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
+    /**
+     * Fallback: Launch Spotify Normally (No Split-Screen Forcing)
+     * 
+     * This is the traditional app launch method when split-screen forcing fails.
+     * User would need to manually enter split-screen via system gestures.
+     */
     private void launchSpotifyNormally() {
         try {
+            // Standard launch without split-screen flags
             Intent spotifyIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("spotify:"));
             startActivity(spotifyIntent);
             showSplitScreenHint("Spotify launched! Swipe up and tap split-screen.");
         } catch (Exception e) {
+            // Web fallback for normal launch
             Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://open.spotify.com"));
             startActivity(webIntent);
             showSplitScreenHint("Spotify web opened! Swipe up and tap split-screen.");
@@ -176,22 +199,38 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    /**
+     * Multi-Window Mode Change Handler
+     * 
+     * This callback fires whenever the app enters/exits split-screen mode.
+     * We use it to implement smart UI that shows controls only when relevant.
+     * 
+     * SMART UI LOGIC:
+     * - Enter split-screen: Show "Full Screen" button (user can now exit)
+     * - Exit split-screen: Hide the button (no longer needed)
+     * 
+     * This creates a clean, context-aware interface that doesn't confuse users
+     * with controls that don't make sense in the current state.
+     */
     @Override
     public void onMultiWindowModeChanged(boolean isInMultiWindowMode) {
         super.onMultiWindowModeChanged(isInMultiWindowMode);
         Log.d(TAG, "Multi-window mode changed: " + isInMultiWindowMode);
         
-        // Update test button visibility and text
+        // Dynamic UI: Show/hide the exit button based on current mode
         MaterialButton testExitButton = findViewById(R.id.testExitButton);
         if (testExitButton != null) {
             if (isInMultiWindowMode) {
+                // Entering split-screen: Show the exit button
                 testExitButton.setText("🖥️ Full Screen");
                 testExitButton.setVisibility(View.VISIBLE);
             } else {
+                // Exiting split-screen: Hide the button (no longer useful)
                 testExitButton.setVisibility(View.GONE);
             }
         }
         
+        // User feedback for mode changes
         if (isInMultiWindowMode) {
             Toast.makeText(this, "Now in split-screen mode", Toast.LENGTH_SHORT).show();
         } else {
