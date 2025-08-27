@@ -24,7 +24,7 @@ import com.google.android.material.button.MaterialButton;
  * Key Discovery: While Android doesn't provide direct APIs for split-screen control,
  * clever use of Intent flags and task manipulation can achieve both entry and exit.
  * 
- * @author Split-Screen Research Team (with AI assistance)
+ * @author Boaz Michaely with AI assistance
  */
 
 public class MainActivity extends AppCompatActivity {
